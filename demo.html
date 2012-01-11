@@ -1,0 +1,99 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>KO observable dictionary</title>
+
+  <script type='text/javascript' src="http://github.com/downloads/SteveSanderson/knockout/knockout-2.0.0.js"></script>
+  <script type='text/javascript' src="ko.observableDictionary.js"></script>
+
+  <style type='text/css'>
+table {border-collapse: collapse }
+table th { font-weight: bold }
+table td { border: 1px solid #bbb }
+
+  </style>
+ 
+</head>
+<body>
+  <p>
+    key: <input data-bind="value: keyToAdd" />
+    value: <input data-bind="value: valueToAdd" />
+    <button data-bind="click: addItem">Add/Set</button>
+</p>
+<p>
+    key: <input data-bind="value: keyToRemove" />
+    <button data-bind="click: removeItem">Remove</button>
+</p>
+<p>abc: <input data-bind="value: dictionary.get('abc')" /></p>
+<table>
+    <thead>
+        <tr>
+            <th width="80">Key</th>
+            <th width="320">Value</th>
+        </tr>
+    </thead>
+    <tbody data-bind="foreach: dictionary">
+        <tr>
+            <td data-bind="text: key"></td>
+            <td data-bind="text: value"></td>
+        </tr>
+    </tbody>
+</table>
+<p>
+    <button data-bind="click: sortByKey" >Sort By Key</button>
+    <button data-bind="click: sortByValue" >Sort By Value</button>
+</p>
+<p><button data-bind="click: naughty" >Naughty</button></p>
+
+<span data-bind="text: ko.toJSON($root.dictionary)"></span>
+  
+<script type='text/javascript'>//<![CDATA[ 
+
+var data = {
+    bcd: 234,
+    abc: 321,
+    cde: 345
+};
+
+var viewModel = {
+    // data
+    dictionary: new ko.observableDictionary(data),
+    
+    // ui
+    keyToAdd: new ko.observable(),
+    valueToAdd: new ko.observable(),
+    addItem: function() {
+        this.dictionary.push(this.keyToAdd(), this.valueToAdd());
+    },
+    
+    keyToRemove: new ko.observable(),
+    removeItem: function() {
+        this.dictionary.remove(this.keyToRemove());
+    },
+    
+    sortByKey: function() {
+        this.dictionary.sort();
+    },
+    sortByValue: function() {
+        this.dictionary.sort(function(a, b) {
+            return defaultComparison(a.value(), b.value());
+        });
+    },
+    
+    naughty: function() {
+        // you shouldn't set keys manually as this might overwrite existing items
+        // instead use dictionary.set(key, value)
+        this.dictionary()[0].key('xyz');
+        this.dictionary()[1].key('xyz');
+    }
+};
+
+ko.applyBindings(viewModel);
+
+//]]>  
+
+</script>
+</body>
+
+
+</html>
