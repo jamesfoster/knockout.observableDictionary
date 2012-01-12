@@ -29,6 +29,8 @@
                 observable.push(new DictionaryItem(key, dictionary[key], observable));
             }
         }
+        
+        observable._wrappers = {};
 
         ko.utils.extend(observable, ko.observableDictionary['fn']);
 
@@ -63,7 +65,7 @@
                 value  = key.value();
             }
 
-            var current = this.get(key);
+            var current = this.get(key, false);
             if (current) {
                 // update existing value
                 current(value);
@@ -98,17 +100,43 @@
             }
         },
 
-        get: function(key) {
-            var found = ko.utils.arrayFirst(this(), function(item) {
-                return item.key() == key;
-            })
-            return found ? found.value : null;
+        get: function(key, wrap) {
+            if (wrap == false)
+                return getValue(key, this());
+            
+            var wrapper = this._wrappers[key];
+            
+            if (wrapper == null) {
+                wrapper = this._wrappers[key] = new ko.computed({
+                    read: function() {
+                        var value = getValue(key, this());
+                        return value ? value() : null;
+                    },
+                    write: function(newValue) {
+                        var value = getValue(key, this());
+
+                        if (value)
+                            value(newValue);
+                        else
+                            this.push(key, newValue);
+                    }
+                }, this);
+            }
+
+            return wrapper;
         },
 
         set: function(key, value) {
             return this.push(key, value);
         }
     };
+
+    function getValue(key, dictionary) {
+        var found = ko.utils.arrayFirst(dictionary, function(item) {
+            return item.key() == key;
+        })
+        return found ? found.value : null;
+    }
 })();
 
 
