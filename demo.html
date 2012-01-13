@@ -32,7 +32,7 @@ table td { border: 1px solid #bbb }
             <th width="320">Value</th>
         </tr>
     </thead>
-    <tbody data-bind="foreach: dictionary">
+    <tbody data-bind="foreach: dictionary.items">
         <tr>
             <td data-bind="text: key"></td>
             <td data-bind="text: value"></td>
@@ -83,8 +83,8 @@ var viewModel = {
     naughty: function() {
         // you shouldn't set keys manually as this might overwrite existing items
         // instead use dictionary.set(key, value)
-        this.dictionary()[0].key('xyz');
-        this.dictionary()[1].key('xyz');
+        this.dictionary.items()[0].key('xyz');
+        this.dictionary.items()[1].key('xyz');
     }
 };
 

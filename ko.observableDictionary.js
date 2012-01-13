@@ -22,19 +22,21 @@
     }
 
     ko.observableDictionary = function(dictionary) {
-        var observable = new ko.observableArray();
+        var result = {};
+        
+        result.items = new ko.observableArray();
 
         for (var key in dictionary) {
             if (dictionary.hasOwnProperty(key)) {
-                observable.push(new DictionaryItem(key, dictionary[key], observable));
+                result.items.push(new DictionaryItem(key, dictionary[key], result));
             }
         }
-        
-        observable._wrappers = {};
 
-        ko.utils.extend(observable, ko.observableDictionary['fn']);
+        result._wrappers = {};
 
-        return observable;
+        ko.utils.extend(result, ko.observableDictionary['fn']);
+
+        return result;
     };
 
     ko.observableDictionary['fn'] = {
@@ -52,7 +54,7 @@
                 };
             }
 
-            ko.observableArray['fn'].remove.call(this, predicate);
+            ko.observableArray['fn'].remove.call(this.items, predicate);
         },
 
         push: function(key, value) {
@@ -61,8 +63,8 @@
 
             if (typeof key == "DictionaryItem") {
                 item = key;
+                value = key.value();
                 key = key.key();
-                value  = key.value();
             }
 
             var current = this.get(key, false);
@@ -76,7 +78,7 @@
                 item = new DictionaryItem(key, value, this);
             }
 
-            return ko.observableArray['fn'].push.call(this, item);
+            return ko.observableArray['fn'].push.call(this.items, item);
         },
 
         sort: function(method) {
@@ -86,15 +88,15 @@
                 };
             }
 
-            return ko.observableArray['fn'].sort.call(this, method);
+            return ko.observableArray['fn'].sort.call(this.items, method);
         },
 
         indexOf: function(key) {
             if (typeof key == "DictionaryItem") {
-                return ko.observableArray['fn'].indexOf.call(this, key);
+                return ko.observableArray['fn'].indexOf.call(this.items, key);
             }
 
-            var underlyingArray = this();
+            var underlyingArray = this.items();
             for (var index = 0; index < underlyingArray.length; i++) {
                 if (underlyingArray[index].key() == key) return index;
             }
@@ -102,18 +104,18 @@
 
         get: function(key, wrap) {
             if (wrap == false)
-                return getValue(key, this());
-            
+                return getValue(key, this.items());
+
             var wrapper = this._wrappers[key];
-            
+
             if (wrapper == null) {
                 wrapper = this._wrappers[key] = new ko.computed({
                     read: function() {
-                        var value = getValue(key, this());
+                        var value = getValue(key, this.items());
                         return value ? value() : null;
                     },
                     write: function(newValue) {
-                        var value = getValue(key, this());
+                        var value = getValue(key, this.items());
 
                         if (value)
                             value(newValue);
@@ -128,11 +130,22 @@
 
         set: function(key, value) {
             return this.push(key, value);
+        },
+
+        toJSON: function() {
+            var result = {};
+            
+            // in toJSON `this` refers to the plain JS object (observables are unwrapped)
+            ko.utils.arrayForEach(this.items, function(item) {
+                result[item.key] = item.value;
+            });
+    
+            return result;
         }
     };
 
-    function getValue(key, dictionary) {
-        var found = ko.utils.arrayFirst(dictionary, function(item) {
+    function getValue(key, items) {
+        var found = ko.utils.arrayFirst(items, function(item) {
             return item.key() == key;
         })
         return found ? found.value : null;

@@ -17,24 +17,24 @@ Then pass a javascript object to ko.observableDictionary() as follows.
     
     ko.applyBindings(viewModel);
 
-You can data bind to the obersvableDictionary as you would an obersvableArray. Each element of the obersvableDictionary has a `key` property and a `value` property
+To loop over the items in the dictionary simply data bind to the items property. Each item has a `key` property and a `value` property
 
-    <ul data-bind="foreach: person">
+    <ul data-bind="foreach: person.items">
         <li>
             <span data-bind="key"></span>
             <span data-bind="value"></span>
         </li>
     </ul>
 
-You can also data bind to specific elements within the dictionary
+You can also data bind to specific elements within the dictionary using the method `get`
 
     <label>Name: <input data-bind="person.get('name')" /></label>
 
-You can even data bind to elements which don't exist yet. In this case, if you the value updates it will add the element to the dictionary.
+You can even data bind to elements which don't exist yet. In this case, if you update the value it will add a new item to the dictionary.
 
     <label>Company: <input data-bind="person.get('company')" /></label>
 
-To set a value on the dictionary in code use the `set` method: `viewModel.person.set('hair colour', 'blue');`. The array methods `indexOf`, `remove`, `sort` and `push` have also been overridden to behave as expected with dictionaries e.g. `viewModel.person.remove('height')` and `viewModel.person.indexOf('hair colour')`
+To set a value on the dictionary in code use the `set` method: `viewModel.person.set('hair colour', 'blue');`. The obersvableArray methods `indexOf`, `remove`, `sort` and `push` have also been overridden to behave as expected with dictionaries e.g. `viewModel.person.remove('height')` and `viewModel.person.indexOf('hair colour')`
 
 Enjoy
 
