@@ -97,7 +97,7 @@
             }
 
             var underlyingArray = this.items();
-            for (var index = 0; index < underlyingArray.length; i++) {
+            for (var index = 0; index < underlyingArray.length; index++) {
                 if (underlyingArray[index].key() == key) return index;
             }
         },
