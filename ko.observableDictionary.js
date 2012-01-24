@@ -181,12 +181,15 @@
 
         toJSON: function () {
             var result = {};
-            
-            // in toJSON `this` refers to the plain JS object (observables are unwrapped)
-            ko.utils.arrayForEach(this.items, function(item) {
-                result[item.key] = item.value;
+            var items = ko.utils.unwrapObservable(this.items);
+
+            ko.utils.arrayForEach(items, function (item) {
+                var key = ko.utils.unwrapObservable(item.key);
+                var value = ko.utils.unwrapObservable(item.value);
+
+                result[key] = value;
             });
-    
+
             return result;
         }
     };
