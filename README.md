@@ -1,7 +1,7 @@
 To use the knockout observable dictionary you simply need to reference knockout and then this
 
     <script type='text/javascript' src="http://github.com/downloads/SteveSanderson/knockout/knockout-2.0.0.js"></script>
-    <script type='text/javascript' src="http://github.com/downloads/jamesfoster/knockout.observableDictionary/ko.observableDictionary-0.1.js"></script>
+    <script type='text/javascript' src="https://raw.github.com/jamesfoster/knockout.observableDictionary/master/ko.observableDictionary.js"></script>
 
 Then pass a javascript object to ko.observableDictionary() as follows.
 
