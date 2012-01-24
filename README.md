@@ -34,7 +34,13 @@ You can even data bind to elements which don't exist yet. In this case, if you u
 
     <label>Company: <input data-bind="person.get('company')" /></label>
 
-To set a value on the dictionary in code use the `set` method: `viewModel.person.set('hair colour', 'blue');`. The obersvableArray methods `indexOf`, `remove`, `sort` and `push` have also been overridden to behave as expected with dictionaries e.g. `viewModel.person.remove('height')` and `viewModel.person.indexOf('hair colour')`
+To set a value on the dictionary in code use either:
+
+* the `set` method: `viewModel.person.set('hair colour', 'blue');`. or
+* the `get` method: `viewModel.person.get('hair colour')('blue');`.
+
+
+The obersvableArray methods `indexOf`, `remove`, `sort` and `push` have also been overridden to behave as expected with dictionaries e.g. `viewModel.person.remove('height')` and `viewModel.person.indexOf('hair colour')`
 
 Enjoy
 
