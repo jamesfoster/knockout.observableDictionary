@@ -1,14 +1,15 @@
-// Knockout Observable Dictionary
+﻿// Knockout Observable Dictionary
 // (c) James Foster
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
 
-(function() {
+(function () {
     function DictionaryItem(key, value, dictionary) {
         var observableKey = new ko.observable(key);
-        this.value = ko.observable(value);
+
+        this.value = new ko.observable(value);
         this.key = new ko.computed({
             read: observableKey,
-            write: function(newKey) {
+            write: function (newKey) {
                 var current = observableKey();
 
                 if (current == newKey) return;
@@ -21,35 +22,36 @@
         });
     }
 
-    ko.observableDictionary = function(dictionary) {
+    ko.observableDictionary = function (dictionary, keySelector, valueSelector) {
         var result = {};
-        
+
         result.items = new ko.observableArray();
 
-        for (var key in dictionary) {
-            if (dictionary.hasOwnProperty(key)) {
-                result.items.push(new DictionaryItem(key, dictionary[key], result));
-            }
-        }
-
         result._wrappers = {};
+        result._keySelector = keySelector || function (value, key) { return key; };
+        result._valueSelector = valueSelector || function (value) { return value; };
+
+        if (typeof keySelector == 'string') result._keySelector = function (value) { return value[keySelector]; };
+        if (typeof valueSelector == 'string') result._valueSelector = function (value) { return value[valueSelector]; };
 
         ko.utils.extend(result, ko.observableDictionary['fn']);
+
+        result.pushAll(dictionary);
 
         return result;
     };
 
     ko.observableDictionary['fn'] = {
-        remove: function(valueOrPredicate) {
+        remove: function (valueOrPredicate) {
             var predicate = valueOrPredicate;
 
-            if (typeof valueOrPredicate == "DictionaryItem") {
-                predicate = function(item) {
+            if (valueOrPredicate instanceof DictionaryItem) {
+                predicate = function (item) {
                     return item.key() === valueOrPredicate.key();
                 };
             }
             else if (typeof valueOrPredicate != "function") {
-                predicate = function(item) {
+                predicate = function (item) {
                     return item.key() === valueOrPredicate;
                 };
             }
@@ -57,14 +59,22 @@
             ko.observableArray['fn'].remove.call(this.items, predicate);
         },
 
-        push: function(key, value) {
-            // handle the case where only a DictionaryItem is passed in
-            var item;
+        push: function (key, value) {
+            var item = null;
 
-            if (typeof key == "DictionaryItem") {
+            if (key instanceof DictionaryItem) {
+                // handle the case where only a DictionaryItem is passed in
                 item = key;
                 value = key.value();
                 key = key.key();
+            }
+
+            if (value === undefined) {
+                value = this._valueSelector(key);
+                key = this._keySelector(value);
+            }
+            else {
+                value = this._valueSelector(value);
             }
 
             var current = this.get(key, false);
@@ -78,12 +88,39 @@
                 item = new DictionaryItem(key, value, this);
             }
 
-            return ko.observableArray['fn'].push.call(this.items, item);
+            ko.observableArray['fn'].push.call(this.items, item);
+
+            return value;
         },
 
-        sort: function(method) {
+        pushAll: function (dictionary) {
+            var self = this;
+            var items = self.items();
+
+            if (dictionary instanceof Array) {
+                $.each(dictionary, function (index, item) {
+                    var key = self._keySelector(item, index);
+                    var value = self._valueSelector(item);
+                    items.push(new DictionaryItem(key, value, self));
+                });
+            }
+            else {
+                for (var prop in dictionary) {
+                    if (dictionary.hasOwnProperty(prop)) {
+                        var item = dictionary[prop];
+                        var key = self._keySelector(item, prop);
+                        var value = self._valueSelector(item);
+                        items.push(new DictionaryItem(key, value, self));
+                    }
+                }
+            }
+
+            self.items.valueHasMutated();
+        },
+
+        sort: function (method) {
             if (method === undefined) {
-                method = function(a, b) {
+                method = function (a, b) {
                     return defaultComparison(a.key(), b.key());
                 };
             }
@@ -91,18 +128,20 @@
             return ko.observableArray['fn'].sort.call(this.items, method);
         },
 
-        indexOf: function(key) {
-            if (typeof key == "DictionaryItem") {
+        indexOf: function (key) {
+            if (key instanceof DictionaryItem) {
                 return ko.observableArray['fn'].indexOf.call(this.items, key);
             }
 
             var underlyingArray = this.items();
             for (var index = 0; index < underlyingArray.length; index++) {
-                if (underlyingArray[index].key() == key) return index;
+                if (underlyingArray[index].key() == key)
+                    return index;
             }
+            return -1;
         },
 
-        get: function(key, wrap) {
+        get: function (key, wrap) {
             if (wrap == false)
                 return getValue(key, this.items());
 
@@ -110,11 +149,11 @@
 
             if (wrapper == null) {
                 wrapper = this._wrappers[key] = new ko.computed({
-                    read: function() {
+                    read: function () {
                         var value = getValue(key, this.items());
                         return value ? value() : null;
                     },
-                    write: function(newValue) {
+                    write: function (newValue) {
                         var value = getValue(key, this.items());
 
                         if (value)
@@ -128,11 +167,11 @@
             return wrapper;
         },
 
-        set: function(key, value) {
+        set: function (key, value) {
             return this.push(key, value);
         },
 
-        toJSON: function() {
+        toJSON: function () {
             var result = {};
             
             // in toJSON `this` refers to the plain JS object (observables are unwrapped)
@@ -145,9 +184,9 @@
     };
 
     function getValue(key, items) {
-        var found = ko.utils.arrayFirst(items, function(item) {
+        var found = ko.utils.arrayFirst(items, function (item) {
             return item.key() == key;
-        })
+        });
         return found ? found.value : null;
     }
 })();
