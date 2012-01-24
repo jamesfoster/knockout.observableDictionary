@@ -171,6 +171,14 @@
             return this.push(key, value);
         },
 
+        keys: function () {
+            return ko.utils.arrayMap(this.items(), function (item) { return item.key(); });
+        },
+
+        values: function () {
+            return ko.utils.arrayMap(this.items(), function (item) { return item.value(); });
+        },
+
         toJSON: function () {
             var result = {};
             
