@@ -178,6 +178,10 @@
         values: function () {
             return ko.utils.arrayMap(this.items(), function (item) { return item.value(); });
         },
+        
+        removeAll: function () {
+            this.items.removeAll();
+        },
 
         toJSON: function () {
             var result = {};
